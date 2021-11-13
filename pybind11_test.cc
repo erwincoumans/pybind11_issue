@@ -21,7 +21,21 @@ struct MyClass
 		for (int i=0;i<size_;i++)
 			data_[i] = float(i);
 		//want map_data_ to share data_ as numpy array without copy
-		map_data_ = py::array_t<float>(size_, data_);	
+		py::capsule buffer_handle([](){});
+			
+		py::buffer_info info(
+            data_,                               /* Pointer to buffer */
+            sizeof(float),                          /* Size of one scalar */
+            py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
+            1,                                      /* Number of dimensions */
+            { size() },                 /* Buffer dimensions */
+            { sizeof(float)}             /* Strides (in bytes) for each index */
+        );
+        
+		
+		map_data_ = py::array_t<float>(info, buffer_handle);	
+			
+			
 	}
 	void set_elem(int pos, float value)
 	{
@@ -35,13 +49,17 @@ struct MyClass
 			}
 
 	}
+	int size() const
+	{
+		return size_;
+	}
 	virtual ~MyClass()
 	{
 		free(data_);
 	}
 };
 
-     
+   
 
 PYBIND11_MODULE(pybind11_test, m) {
 	 py::class_<MyClass>(m, "MyClass")
@@ -49,5 +67,7 @@ PYBIND11_MODULE(pybind11_test, m) {
 	 .def("set_elem", &MyClass::set_elem)
    .def_readonly("size_", &MyClass::size_)
    .def_readwrite("data", &MyClass::map_data_)
+
    	;
+   	
 }
