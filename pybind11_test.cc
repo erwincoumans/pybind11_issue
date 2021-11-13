@@ -22,18 +22,7 @@ struct MyClass
 			data_[i] = float(i);
 		//want map_data_ to share data_ as numpy array without copy
 		py::capsule buffer_handle([](){});
-			
-		py::buffer_info info(
-            data_,                               /* Pointer to buffer */
-            sizeof(float),                          /* Size of one scalar */
-            py::format_descriptor<float>::format(), /* Python struct-style format descriptor */
-            1,                                      /* Number of dimensions */
-            { size() },                 /* Buffer dimensions */
-            { sizeof(float)}             /* Strides (in bytes) for each index */
-        );
-        
-		
-		map_data_ = py::array_t<float>(info, buffer_handle);	
+		map_data_ = py::array_t<float>(size_, data_, buffer_handle);	
 			
 			
 	}
